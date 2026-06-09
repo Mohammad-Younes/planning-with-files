@@ -56,3 +56,6 @@ CLAUDE.md
 
 # Node.js modules pulled into IDE adapters
 node_modules/
+
+# Deferred personal dev/strategy notes (never published)
+.dev-notes/
