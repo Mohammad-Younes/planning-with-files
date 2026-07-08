@@ -291,6 +291,12 @@ These amazing people have contributed code, documentation, or significant improv
   - Added Autohand Code to the README's supported-IDEs table
   - **Impact:** planning-with-files now documents a supported install path for Autohand Code alongside the other 17+ platforms
 
+- **[@Yigtwxx](https://github.com/Yigtwxx)** (Yiğit Erdoğan) - [PR #198](https://github.com/OthmanAdi/planning-with-files/pull/198), [PR #199](https://github.com/OthmanAdi/planning-with-files/pull/199), [Issue #197](https://github.com/OthmanAdi/planning-with-files/issues/197)
+  - Filed #197 after running the suite on GitHub-hosted runners from a fork: the repo had a 200+ test pytest suite and a 21-test Pi vitest suite that CONTRIBUTING.md asks contributors to run, but no workflow ran either; the only CI was the Tessl skill-prose review
+  - PR #199 added `.github/workflows/tests.yml`: pytest on `ubuntu-latest` and `windows-latest` (Python 3.12) plus the Pi extension vitest suite (Node 22), on every pull request and push to master, with `contents: read` permissions, `fail-fast: false`, and an explicit `sh`-on-PATH assertion so hook tests cannot silently skip
+  - PR #198 fixed the two latent test-portability failures the first hosted run exposed, test-side only: a `host_realpath()` helper that maps the resolver's Git Bash POSIX path back with `cygpath` before the containment comparison, and `skipUnless(os.name == "nt")` on two Windows-shaped path vectors that fail on POSIX where `Path.resolve()` treats `C:/...` as relative
+  - **Impact:** every PR now runs the real test suite on both Linux and Windows, catching the recurring Windows regression class (the v3.2.0 audit found `session-catchup.py` silently broken on Windows) at PR time instead of at release audit time
+
 ## Community Forks
 
 These developers have created forks that extend the functionality:
@@ -348,4 +354,4 @@ If you've contributed and don't see your name here, please open an issue! We wan
 
 **Total Contributors:** 50+ and growing!
 
-*Last updated: July 6, 2026*
+*Last updated: July 8, 2026*

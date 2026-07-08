@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+Infrastructure only. Nothing in the distributed skill changed, so no version bump: these changes touch `.github/` and `tests/`, not any of the 19 version-bump targets.
+
+### Added
+
+- **CI test workflow** (`.github/workflows/tests.yml`, PR #199 by @Yigtwxx, closes #197). Runs the pytest suite on `ubuntu-latest` and `windows-latest` (Python 3.12) plus the Pi extension vitest suite on `ubuntu-latest` (Node 22), on every pull request and push to master. Until now the only CI was the Tessl skill-prose review, so nothing ran the 200+ pytest tests or the 21 Pi vitest tests that CONTRIBUTING.md asks contributors to run before opening a PR. The `windows-latest` leg targets the recurring Windows regression class (the v3.2.0 audit found `session-catchup.py` silently non-functional on Windows). Workflow permissions are `contents: read` only, `fail-fast: false` keeps a Windows-only failure visible instead of masked by a cancel, and an explicit step asserts `sh` is on PATH so the roughly ten hook tests that skip without it cannot silently drop coverage. The workflow lives in `.github/` and is not part of the distributed skill.
+
+### Fixed
+
+- **Two test-portability failures surfaced by the first hosted-runner run** (PR #198 by @Yigtwxx, test files only, no production script changes). `tests/test_containment.py` canonicalized the resolver's Git Bash POSIX path with `os.path.realpath`, which read `/tmp/...` as `C:\tmp` and failed the escaping-symlink containment assertion on symlink-capable `windows-latest`; a `host_realpath()` helper now maps the path back with `cygpath` before comparing. `tests/test_path_fix.py` ran two Windows-shaped path vectors on `ubuntu-latest`, where `Path.resolve()` treats `C:/...` as relative and prepends the CWD; both now skip unless `os.name == "nt"`, the only platform where that input shape is meaningful. In both cases the resolver rejected the escape correctly and only the test comparison was wrong.
+
+### Verification
+
+- Python suite green on master before merge (200 passed, 5 skipped on a non-symlink-capable Windows host). Contributor's hosted-runner run green on all three jobs: 202 passed / 3 skipped on ubuntu (symlink containment tests running), the equivalent profile on windows, and 21 vitest. The workflow's first run on the merge commit (master) is green across all three jobs.
+- Supply-chain review: no new runtime dependencies, no install scripts, no bin shims. The workflow installs `pytest` and `pyyaml` for the pytest job and runs `npm install` against the Pi extension's existing devDependencies (vitest, typescript, @types/node). It uses `pull_request` (not `pull_request_target`), so fork PRs run with a read-only token and no secret access.
+
+### Thanks
+
+- @Yigtwxx (Yiğit) for filing the CI gap (#197) and landing both the test-portability fixes (#198) and the pytest plus vitest workflow (#199).
+
 ## [3.4.0] - 2026-07-06
 
 ### Added
