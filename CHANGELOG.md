@@ -23,6 +23,34 @@ Infrastructure only. Nothing in the distributed skill changed, so no version bum
 
 - @Yigtwxx (Yiğit) for filing the CI gap (#197) and landing both the test-portability fixes (#198) and the pytest plus vitest workflow (#199).
 
+## [3.5.0] - 2026-07-13
+
+### Fixed
+
+- **Codex hooks on Windows emitted invalid JSON and failed on Unicode** (PR #205 by @yolo0731, closes #204). On Windows the Codex front door forwarded plain `[planning-with-files]` stdout where Codex expects `hookSpecificOutput.additionalContext` (SessionStart, UserPromptSubmit) or a common-fields object (PreCompact), so those hooks were rejected. UTF-8 plan text also broke twice, once decoding shell output through the Windows code page in `subprocess.run(text=True)` and again writing `ensure_ascii=False` JSON through cmd.exe. The fix serializes each event in its supported Codex JSON shape with ASCII-safe output, decodes shell output as UTF-8 with `errors="replace"`, routes PreToolUse plan text through model-visible `additionalContext`, resolves scoped `.planning/<slug>/` plans in PermissionRequest, adds `clear|compact` to the SessionStart matcher, and writes the `.active_plan` pointer as UTF-8 without a BOM. The containment resolver also now fails closed when canonicalization is unavailable. 34 files, with the three-file script triple applied identically across every adapter copy. Scope is Windows Codex, matching the report.
+
+- **Closed and complete plans kept nagging "Task incomplete" in the Pi extension** (#203, reported by @ziyu4huang). `resolveNewestPlanDir` ranked plan directories by directory mtime, which does not change when a `task_plan.md`'s contents are edited, so a finished plan lost to an older incomplete sibling and `agent_end` nagged with that sibling's stale count. Resolution now ranks by the `task_plan.md` file mtime. The extension also had no close-marker awareness: `readPlanStatus` now parses the pwf close marker and exposes `status.closed`, `agent_end` returns early on a closed plan, and the auto-continue loop stops on close. A `PWF_DEBUG` diagnostic logs the resolved cwd, plan id, closed state, and phase count before the nag. Bundled Pi extension bumped to 1.2.0.
+
+- **Four language commands invoked a skill namespace that does not exist.** `commands/plan-ar.md`, `plan-de.md`, `plan-es.md`, and `plan-zh.md` referenced `planning-with-files-<lang>:planning-with-files-<lang>`; the skills are registered under the single plugin namespace `planning-with-files:planning-with-files-<lang>`, which the English commands already used. Corrected all four.
+
+### Added
+
+- **Traditional Chinese slash command** (`commands/plan-zht.md`, `/plan-zht`). The `planning-with-files-zht` skill shipped without a matching command; this closes the ar/de/es/zh/zht command parity gap.
+
+- **README now documents the full v3 command, hook, and mode surface.** The visible command table listed only three commands with v2.11.0 and v2.15.0 tags while the plugin ships `plan-goal`, `plan-loop`, `plan-attest`, `pwf`, and the language commands. Added visible sections for the Claude Code and Pi command tables, a v3 long-running-agent features section, a hooks-and-modes reference across Claude Code, Codex, and Pi, and a "command names vs skill names" note that states there is no `/pwf-de` or `/planning-with-files:planning-with-files-goal`. All additive.
+
+- **Plan lifecycle is now documented** (#202, asked by @kcinzgg). `docs/workflow.md` gains an "After Completion" section stating that planning files are ephemeral working memory, gitignored by default, and not archived automatically, with guidance on retaining a completed plan and a note that a completion-triggered archive step is a welcome opt-in extension. Pointers added in `docs/quickstart.md` and the README FAQ. This writes down the intent that issue #14 answered informally.
+
+### Security
+
+- Independent supply-chain audit of PR #205 before merge (a classifier plus two adversarial containment passes, all clean): no new dependencies, no install scripts, no bin shims, no network calls, no eval of untrusted input. The one security-relevant change (containment moving from fail-open to fail-closed) is a hardening, covered by an added junction-escape rejection test.
+
+### Thanks
+
+- @yolo0731 for the Codex Windows hook fix (#204, PR #205), the protocol-safe JSON serialization and the UTF-8 handling.
+- @ziyu4huang for the precise #203 diagnosis, verified against the extension's own exported functions.
+- @kcinzgg for the #202 question that surfaced the undocumented plan lifecycle.
+
 ## [3.4.1] - 2026-07-12
 
 ### Fixed

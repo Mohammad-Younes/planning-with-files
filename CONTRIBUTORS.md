@@ -106,6 +106,19 @@ These amazing people have contributed code, documentation, or significant improv
 
 ### Other Contributors
 
+- **[@yolo0731](https://github.com/yolo0731)** (yoloyq) - [PR #205](https://github.com/OthmanAdi/planning-with-files/pull/205), closes [Issue #204](https://github.com/OthmanAdi/planning-with-files/issues/204)
+  - Fixed the Codex hooks on Windows emitting invalid JSON and failing on Unicode: plain `[planning-with-files]` stdout where Codex expects `hookSpecificOutput.additionalContext` or a common-fields object, UTF-8 shell output decoded through the Windows code page, and `ensure_ascii=False` JSON written through cmd.exe
+  - Serialized each event in its supported Codex JSON shape with ASCII-safe output, decoded shell output as UTF-8, routed PreToolUse plan text through model-visible `additionalContext`, resolved scoped plans in PermissionRequest, added `clear|compact` SessionStart sources, wrote the `.active_plan` pointer without a BOM, and hardened the containment resolver to fail closed
+  - **Impact:** v3.5.0 makes the full Codex hook surface work on Windows across active-plan, no-plan, disabled, malformed-input, and Unicode scenarios
+
+- **[@ziyu4huang](https://github.com/ziyu4huang)** (Ziyu Huang) - [Issue #203](https://github.com/OthmanAdi/planning-with-files/issues/203)
+  - Reported that a closed and complete plan kept emitting "Task incomplete" nags for many turns, with a root-cause trace against the Pi extension's own exported `resolvePlanPaths`, `readPlanStatus`, and `isPlanIncomplete`
+  - **Impact:** v3.5.0 ranks newest-plan resolution by `task_plan.md` file mtime, adds close-marker awareness, and gates the nag on `status.closed`
+
+- **[@kcinzgg](https://github.com/kcinzgg)** (Kcinzgg) - [Issue #202](https://github.com/OthmanAdi/planning-with-files/issues/202)
+  - Asked for a direct statement of the plan-file lifecycle and why there is no archiving step, noting the earlier #14 had no visible resolution
+  - **Impact:** v3.5.0 documents the ephemeral-working-memory lifecycle in `docs/workflow.md`, with pointers from `quickstart.md` and the README FAQ
+
 - **[@mahdiit](https://github.com/mahdiit)** (Mahdi) - [Issue #201](https://github.com/OthmanAdi/planning-with-files/issues/201)
   - Reported that Codex hooks failed on Windows with `hook exited with code 1`: the `.codex/hooks.json` commands were POSIX only, so the Windows command interpreter choked on `python3` (the Store alias), `2>/dev/null`, and the `|| true` success guard whose `true` is not a Windows command
   - **Impact:** v3.4.1 adds per-hook `commandWindows` overrides, a `pwf-hook.cmd` launcher, a `run_sh.py` front door, and a git-bash resolver so all seven Codex hooks run on Windows
@@ -358,4 +371,4 @@ If you've contributed and don't see your name here, please open an issue! We wan
 
 **Total Contributors:** 50+ and growing!
 
-*Last updated: July 8, 2026*
+*Last updated: July 13, 2026*
